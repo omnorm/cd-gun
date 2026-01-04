@@ -1,0 +1,36 @@
+# This file should be installed at /etc/sudoers.d/cd-gun
+# Installation: sudo cp deployments/cd-gun.sudoers /etc/sudoers.d/cd-gun
+# Permissions: sudo chmod 0440 /etc/sudoers.d/cd-gun
+
+# Allow cd-gun user to execute deployment commands without password
+# These rules are specific to common deployment tasks
+
+# For web app deployments (copying files, reloading nginx/apache)
+cd-gun ALL=(ALL) NOPASSWD: /bin/cp, /bin/cp -r, /usr/bin/cp, /usr/bin/cp -r
+cd-gun ALL=(ALL) NOPASSWD: /bin/systemctl reload nginx
+cd-gun ALL=(ALL) NOPASSWD: /bin/systemctl reload apache2
+cd-gun ALL=(ALL) NOPASSWD: /bin/systemctl restart nginx
+cd-gun ALL=(ALL) NOPASSWD: /bin/systemctl restart apache2
+cd-gun ALL=(ALL) NOPASSWD: /bin/systemctl reload *
+cd-gun ALL=(ALL) NOPASSWD: /bin/systemctl restart *
+cd-gun ALL=(ALL) NOPASSWD: /bin/systemctl start *
+cd-gun ALL=(ALL) NOPASSWD: /bin/systemctl stop *
+
+# For Docker deployments (manage docker services)
+cd-gun ALL=(ALL) NOPASSWD: /usr/bin/docker *
+cd-gun ALL=(ALL) NOPASSWD: /usr/bin/docker-compose *
+
+# For general file operations that might be needed
+cd-gun ALL=(ALL) NOPASSWD: /bin/chown, /usr/bin/chown
+cd-gun ALL=(ALL) NOPASSWD: /bin/chmod, /usr/bin/chmod
+cd-gun ALL=(ALL) NOPASSWD: /bin/rm, /usr/bin/rm
+cd-gun ALL=(ALL) NOPASSWD: /bin/mkdir, /usr/bin/mkdir
+
+# NOTE: These are permissive rules for examples. In production, restrict further:
+# - Limit to specific paths (e.g., /var/www/myapp)
+# - Limit to specific systemctl services (nginx, not *)
+# - Use absolute paths to prevent directory traversal
+
+# Example of more restrictive rules:
+# cd-gun ALL=(ALL) NOPASSWD: /bin/cp -r /var/lib/cd-gun/repos/web-app/dist/* /var/www/myapp/
+# cd-gun ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx

@@ -1,0 +1,27 @@
+agent:
+  name: "cd-gun-agent"
+  log_level: "info"
+  log_file: "/var/log/cd-gun.log"  # Optional: omit to log to stdout/journalctl
+  state_dir: "/var/lib/cd-gun"
+  cache_dir: "/var/lib/cd-gun/repos"
+  poll_interval: "5m"
+
+repositories:
+  - name: "web-app"
+    url: "https://github.com/example/web-app.git"
+    branch: "main"
+    auth:
+      type: "https"
+    watch_paths:
+      - "src/"
+      - "package.json"
+      - "docker-compose.yml"
+    poll_interval: "5m"
+    action:
+      type: "shell"
+      script: "/opt/cd-gun/scripts/deploy-web.sh"
+      timeout: "10m"
+      parallel: false
+      env:
+        DEPLOY_ENV: "production"
+        DOCKER_REGISTRY: "docker.example.com"

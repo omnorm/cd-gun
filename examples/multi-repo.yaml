@@ -1,0 +1,58 @@
+agent:
+  name: "cd-gun-agent-multi"
+  log_level: "info"
+  log_file: "/var/log/cd-gun.log"  # Optional: omit to log to stdout/journalctl
+  state_dir: "/var/lib/cd-gun"
+  cache_dir: "/var/lib/cd-gun/repos"
+  poll_interval: "5m"
+
+# Load repositories from multiple sources
+include_repositories:
+  - "/etc/cd-gun/repos-frontend/*.yaml"
+  - "/etc/cd-gun/repos-api/*.yaml"
+  - "/etc/cd-gun/repos-workers/*.yaml"
+
+repositories:
+  - name: "frontend"
+    url: "https://github.com/myorg/frontend.git"
+    branch: "main"
+    auth:
+      type: "https"
+    watch_paths:
+      - "dist/"
+      - "package.json"
+    poll_interval: "10m"
+    action:
+      type: "shell"
+      script: "/opt/cd-gun/scripts/deploy-frontend.sh"
+      timeout: "10m"
+      parallel: true
+
+  - name: "api-service"
+    url: "https://github.com/myorg/api.git"
+    branch: "main"
+    auth:
+      type: "https"
+    watch_paths:
+      - "src/"
+      - "Dockerfile"
+    poll_interval: "10m"
+    action:
+      type: "shell"
+      script: "/opt/cd-gun/scripts/deploy-api.sh"
+      timeout: "15m"
+      parallel: true
+
+  - name: "config-repo"
+    url: "ssh://git.internal/configs.git"
+    branch: "main"
+    auth:
+      type: "ssh"
+    watch_paths:
+      - "services/api/config.yaml"
+      - "services/frontend/config.json"
+    poll_interval: "5m"
+    action:
+      type: "webhook"
+      url: "http://localhost:8080/api/config-reload"
+      timeout: "5m"

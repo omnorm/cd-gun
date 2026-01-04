@@ -1,0 +1,17 @@
+# Example repository configuration file for use with includes
+# Path: /etc/cd-gun/repositories/config.yaml
+
+- name: "config-repo"
+  url: "ssh://git.internal/configs.git"
+  branch: "main"
+  auth:
+    type: "ssh"
+  watch_paths:
+    - "services/api/config.yaml"
+    - "services/frontend/config.json"
+    - "nginx/sites/"
+  poll_interval: "5m"
+  action:
+    type: "webhook"
+    url: "http://localhost:8080/api/config-reload"
+    timeout: "5m"

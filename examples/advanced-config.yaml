@@ -1,0 +1,33 @@
+agent:
+  name: "cd-gun-agent-webhook"
+  log_level: "info"
+  log_file: "/var/log/cd-gun.log"  # Optional: omit to log to stdout/journalctl
+  state_dir: "/var/lib/cd-gun"
+  cache_dir: "/var/lib/cd-gun/repos"
+  poll_interval: "5m"
+
+# Can combine include patterns with inline repositories
+include_repositories:
+  - "/etc/cd-gun/repositories/*.yaml"
+
+repositories:
+  - name: "api-service"
+    url: "https://github.com/myorg/api.git"
+    branch: "main"
+    auth:
+      type: "https"
+    watch_paths:
+      - "src/"
+      - "Dockerfile"
+      - "docker-compose.yml"
+    poll_interval: "10m"
+    action:
+      type: "shell"
+      script: "/opt/cd-gun/scripts/deploy-api-advanced.sh"
+      timeout: "20m"
+      env:
+        DOCKER_REGISTRY: "docker.company.com"
+        DEPLOY_ENV: "production"
+        SLACK_WEBHOOK: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+        PAGERDUTY_KEY: "your-pagerduty-integration-key"
+        ROLLBACK_ON_ERROR: "true"

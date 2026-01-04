@@ -1,0 +1,22 @@
+# CD-Gun configuration with split into multiple files
+# Global agent parameters are here,
+# and repository configurations can be split into separate files
+
+agent:
+  name: "cd-gun-agent"
+  log_level: "info"
+  log_file: "/var/log/cd-gun.log"  # Optional: omit to log to stdout/journalctl
+  state_dir: "/var/lib/cd-gun"
+  cache_dir: "/var/cache/cd-gun/repos"
+  poll_interval: "5m"
+
+# List of paths/patterns for repository includes
+# Supports glob patterns, direct file paths, and directories
+include_repositories:
+  - "/etc/cd-gun/repositories/*.yaml"      # Glob pattern - will load all .yaml files
+  - "/etc/cd-gun/production/*.yaml"        # Multiple patterns
+  - "/etc/cd-gun/special-deploy.yaml"      # Direct path to file
+  - "/etc/cd-gun/project-configs/"         # Path to directory (will load all .yaml)
+
+# You can also specify repositories directly in this file (optional)
+repositories: []

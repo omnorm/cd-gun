@@ -1,0 +1,21 @@
+# Example repository configuration file for use with includes
+# Path: /etc/cd-gun/repositories/api.yaml
+
+- name: "api-service"
+  url: "https://github.com/myorg/api.git"
+  branch: "main"
+  auth:
+    type: "https"
+  watch_paths:
+    - "src/"
+    - "Dockerfile"
+    - "requirements.txt"
+  poll_interval: "10m"
+  action:
+    type: "shell"
+    script: "/opt/cd-gun/scripts/deploy-api.sh"
+    timeout: "15m"
+    env:
+      DEPLOY_ENV: "production"
+      DOCKER_REGISTRY: "docker.mycompany.com"
+      API_SERVICE_NAME: "my-api"

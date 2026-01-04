@@ -1,0 +1,21 @@
+# Example repository configuration file for use with includes
+# Path: /etc/cd-gun/repositories/frontend.yaml (or similar)
+# Or all such files will be included via glob pattern
+
+- name: "frontend"
+  url: "https://github.com/myorg/frontend.git"
+  branch: "main"
+  auth:
+    type: "https"
+  watch_paths:
+    - "dist/"
+    - "package.json"
+    - "src/"
+  poll_interval: "10m"
+  action:
+    type: "shell"
+    script: "/opt/cd-gun/scripts/deploy-frontend.sh"
+    timeout: "10m"
+    env:
+      DEPLOY_ENV: "production"
+      FRONTEND_PATH: "/var/www/app"

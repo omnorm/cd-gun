@@ -1,0 +1,46 @@
+[Unit]
+Description=CD-Gun - Universal CD/GitOps Agent
+Documentation=https://github.com/omnorm/cd-gun
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cd-gun
+Group=cd-gun
+WorkingDirectory=/var/lib/cd-gun
+
+ExecStart=/usr/local/bin/cd-gun-agent \
+  -config /etc/cd-gun/config.yaml
+
+# Graceful reload on SIGHUP
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=60s
+StartLimitBurst=3
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=3
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cd-gun
+
+# Security - allow sudo to work (needed for deployment scripts)
+# Note: NoNewPrivileges=true would prevent setuid for sudo, so we don't use it
+PrivateTmp=yes
+ProtectSystem=true
+ProtectHome=false
+ReadWritePaths=/var/lib/cd-gun /home/cd-gun
+
+# Environment
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+
+[Install]
+WantedBy=multi-user.target
