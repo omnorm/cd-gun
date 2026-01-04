@@ -1,0 +1,82 @@
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-source: false
+  sort-results: true
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  govet:
+    check-shadowing: true
+    disable-all: false
+
+  golint:
+    min-confidence: 0.8
+
+  goimports:
+    local-prefixes: github.com/omnorm/cd-gun
+
+  gosimple:
+    go: "1.23"
+
+  staticcheck:
+    go: "1.23"
+
+  unused:
+    go: "1.23"
+
+  gocyclo:
+    min-complexity: 20
+
+  maligned:
+    suggest-unsafe: false
+
+  dupl:
+    threshold: 150
+
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - gosimple
+    - gocritic
+    - staticcheck
+    - unused
+    - goimports
+    - gocyclo
+    - dupl
+    - goconst
+  disable:
+    - golint
+  fast: false
+
+issues:
+  exclude-rules:
+    # Ignore "should not use basic types for context" error
+    - text: "should not use basic type string as key in context.WithValue"
+      linters:
+        - govet
+    # Ignore shadowing in test files
+    - path: "test"
+      text: "declaration of .* shadows an outer scope variable"
+      linters:
+        - govet
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new-from-rev: ""
+  new: false

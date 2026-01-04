@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+    
+    - name: Get version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+    
+    - name: Build binaries
+      run: |
+        # Build for Linux AMD64
+        GOOS=linux GOARCH=amd64 go build -o bin/cd-gun-agent-linux-amd64 \
+          -ldflags "-X main.version=${{ steps.version.outputs.VERSION }}" \
+          ./cmd/cd-gun-agent
+        
+        # Build for Linux ARM64
+        GOOS=linux GOARCH=arm64 go build -o bin/cd-gun-agent-linux-arm64 \
+          -ldflags "-X main.version=${{ steps.version.outputs.VERSION }}" \
+          ./cmd/cd-gun-agent
+        
+        # Build for macOS AMD64
+        GOOS=darwin GOARCH=amd64 go build -o bin/cd-gun-agent-darwin-amd64 \
+          -ldflags "-X main.version=${{ steps.version.outputs.VERSION }}" \
+          ./cmd/cd-gun-agent
+        
+        # Build for macOS ARM64 (Apple Silicon)
+        GOOS=darwin GOARCH=arm64 go build -o bin/cd-gun-agent-darwin-arm64 \
+          -ldflags "-X main.version=${{ steps.version.outputs.VERSION }}" \
+          ./cmd/cd-gun-agent
+    
+    - name: Create checksums
+      run: |
+        cd bin
+        sha256sum cd-gun-agent-* > checksums.txt
+    
+    - name: Create release archives
+      run: |
+        cd bin
+        tar czf cd-gun-agent-linux-amd64.tar.gz cd-gun-agent-linux-amd64
+        tar czf cd-gun-agent-linux-arm64.tar.gz cd-gun-agent-linux-arm64
+        tar czf cd-gun-agent-darwin-amd64.tar.gz cd-gun-agent-darwin-amd64
+        tar czf cd-gun-agent-darwin-arm64.tar.gz cd-gun-agent-darwin-arm64
+    
+    - name: Extract changelog for version
+      id: changelog
+      run: |
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        
+        # Extract the section for this version from CHANGELOG.md
+        # Find lines between "## [$VERSION]" and the next "## [" or "---"
+        awk -v ver="$VERSION" '
+          /^## \[/ { 
+            if (found) exit;
+            if ($0 ~ "\\[" ver "\\]") found=1;
+            next;
+          }
+          found && /^---$/ { exit; }
+          found { print; }
+        ' CHANGELOG.md > release_notes.txt
+        
+        # Use a unique delimiter for multi-line output
+        delimiter="$(openssl rand -hex 8)"
+        echo "CHANGELOG<<${delimiter}" >> $GITHUB_OUTPUT
+        cat release_notes.txt >> $GITHUB_OUTPUT
+        echo "${delimiter}" >> $GITHUB_OUTPUT
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release v${{ steps.version.outputs.VERSION }}
+        body: ${{ steps.changelog.outputs.CHANGELOG }}
+        draft: false
+        prerelease: false
+        files: |
+          bin/*.tar.gz
+          bin/checksums.txt
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
